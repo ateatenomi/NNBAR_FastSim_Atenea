@@ -176,6 +176,7 @@ void NNBAROutput::CreateNtuples() {
   
   //Uncomment for HCAL. Be careful with the ntuple number in FinishNtuple()
   analysisManager->CreateNtuple("HCAL","HCAL");
+  analysisManager->CreateNtuple("HCAL","HCAL");
   analysisManager->CreateNtupleIColumn( "hcal_PDG",fHcalPDGVec);  
   analysisManager->CreateNtupleDColumn( "hcal_ETruth",fHcalETruthVec);
   analysisManager->CreateNtupleDColumn( "hcal_res",fHcalResVec); 

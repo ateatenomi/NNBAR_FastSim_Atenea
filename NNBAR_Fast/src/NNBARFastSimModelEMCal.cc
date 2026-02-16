@@ -89,10 +89,7 @@ G4bool NNBARFastSimModelEMCal::IsApplicable(
          &aParticleType == G4Positron::Definition()    ||
          &aParticleType == G4MuonPlus::Definition()    ||
          &aParticleType == G4MuonMinus::Definition()   ||
-         &aParticleType == G4Gamma::Definition()       ||
-         &aParticleType == G4PionMinus::Definition()   ||
-         &aParticleType == G4PionPlus::Definition()    ||
-         &aParticleType == G4Proton::Definition();
+         &aParticleType == G4Gamma::Definition();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
