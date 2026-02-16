@@ -65,6 +65,8 @@ NNBARDetectorConstruction::~NNBARDetectorConstruction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+
+
 G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
   
    G4double a;
@@ -113,9 +115,28 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
    Carbon_target->AddElement(elC, 1);
    auto carbonMaterial = G4Material::GetMaterial("Carbon_target");
     
+   //TPC MATRIAL ERNESTO
+//----------- TCP Material (WVS - 2025/05/07) ----------
+
+   //G4Element* elO = nistManager->FindOrBuildElement("O");
+   //G4Element* elC = nistManager->FindOrBuildElement("C");
+   G4Element* elAr = nistManager->FindOrBuildElement("Ar");
    
+   G4Material* CO2_mat = new G4Material("CO2", 1.7E-3*g/cm3, 2);
+   CO2_mat->AddElementByNumberOfAtoms(elC, 1);
+   CO2_mat->AddElementByNumberOfAtoms(elO, 2);
+
+  
+   G4Material* TPC_mat = new G4Material("TPC_mat", 1.7E-3*g/cm3, 2);  //1.023*g/cm3
+   TPC_mat->AddElementByMassFraction(elAr, 80.0*perCent);  //hibeam/nnbar 80x20 - WVS - 2025-10-19
+   TPC_mat->AddMaterial(CO2_mat, 20.0*perCent);
+
+
+
+
     //Dimensions
     G4int  nofLayers = 10;
+    /*
     G4double  absoThickness  = 25.*cm;
     G4double  scintThickness =  30.*cm;
     G4double  calorSizeXY    =  5.15*m;
@@ -125,6 +146,30 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
     auto calorThickness = scintThickness + absoThickness;
     auto worldSizeXY = 1.2 * calorSizeXY;
     auto worldSizeZ  = 1.2 * calorSizeZ;
+      */
+
+    //DIMENSIONS ATE
+    G4double scintThickness = 0.01*m;
+    G4double scintGap = 0.01*m;
+    G4double pbThickness = 0.003*m;
+    G4double tpcThickness = 0.150*m;
+    G4double tpcInnerRadius = 0.60*m;
+    G4double cvrInnerRadius = 0.98*m;
+    G4double cvrThickness = 0.01*m;
+    G4double startAngle = 0.*deg;
+    G4double spanningAngle = 360.*deg;
+    G4double calorSizeZ = 6.0*m;
+    G4double targetRadius = 0.5*m;
+   
+    auto tpcOuterRadius = tpcInnerRadius + tpcThickness;
+    auto innerRadiusS1 = tpcOuterRadius + scintGap;
+    auto innerRadiusLead = innerRadiusS1 + scintThickness+scintGap;
+    auto outerRadiusLead = innerRadiusLead + pbThickness;
+    auto innerRadiusS2 = outerRadiusLead + scintGap;
+    auto outerRadiusS2 = innerRadiusS2 + scintThickness; 
+    auto worldSizeXY = 7.*m;
+    auto worldSizeZ = 7.*m;
+
 
 //-----------Build World Volume--------------------------------------
 
@@ -141,13 +186,14 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
                  fCheckOverlaps);  // checking overlaps 
 
 //-----------Build boxes for calorimeters construction---------------------------------
-  
+  /*
    auto box1 = new G4Box("Box1", calorSizeXY/2., calorSizeXY/2., calorSizeZ/2.); 
    auto box2 = new G4Box("Box2",(calorSizeXY-absoThickness)/2., (calorSizeXY-absoThickness)/2., calorSizeZ/2.);
    auto box3 = new G4Box("Box3", (calorSizeXY-calorThickness)/2., (calorSizeXY-calorThickness)/2., calorSizeZ/2.);
-
+*/
 //-----------Build Lead glass calorimeter---------------------------------
 
+   /*
    auto absorberS = new G4SubtractionSolid("Abso", box1, box2,0, G4ThreeVector(0.,0.,0.));
    auto absorberLV = new G4LogicalVolume(absorberS,  absorberMaterial, "AbsoLV"); 
    new G4PVPlacement(
@@ -159,9 +205,14 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps 
+
+   */
+   auto leadS = new G4Tubs("LEADS",innerRadiusLead,outerRadiusLead,calorSizeZ/2.,startAngle,spanningAngle);
+   auto leadLV = new G4LogicalVolume(leadS, absorberMaterial ,"LEADLV");
+   new G4PVPlacement(0,G4ThreeVector(0., 0., 0.),leadLV,"LEADPV",worldLV,false,0,fCheckOverlaps);
  
  //-----------Build Had Calorimeter--------------------------------------------
- 
+ /*
    auto scintS = new G4SubtractionSolid("Scint",box2,box3);
    auto scintLV = new G4LogicalVolume(scintS, scintMaterial, "ScintLV"); 
    new G4PVPlacement(
@@ -174,9 +225,36 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
                     0,                   // copy number
                     fCheckOverlaps);     // checking overlaps 
 
+*/
+auto scintS1S = new G4Tubs("SCINTS1S", innerRadiusS1, innerRadiusLead,calorSizeZ/2.,startAngle,spanningAngle);
+   auto scintS1LV = new G4LogicalVolume(scintS1S, scintMaterial, "ScintS1LV");
+   new G4PVPlacement(
+                    0,                   // no rotation
+                    G4ThreeVector(0., 0., 0),
+                    scintS1LV,             // its logical volume                         
+                    "ScintS1",             // its name
+                    worldLV,	         // its mother volume
+                    false,               // no boolean operation
+                    0,                   // copy number
+                    fCheckOverlaps);     // checking overlaps 
+
+   auto scintS2S = new G4Tubs("SCINTS2S", innerRadiusS2, outerRadiusS2,calorSizeZ/2.,startAngle,spanningAngle);
+   auto scintS2LV = new G4LogicalVolume(scintS2S, scintMaterial, "ScintS2LV");
+   new G4PVPlacement(
+                    0,                   // no rotation
+                    G4ThreeVector(0., 0., 0),
+                    scintS2LV,             // its logical volume                         
+                    "ScintS2",             // its name
+                    worldLV,	         // its mother volume
+                    false,               // no boolean operation
+                    0,                   // copy number
+                    fCheckOverlaps);     // checking overlaps 
+
+
+
  //-----------Build hallow box----------------------------------------------
  //This block has no function but vizualization
-
+  /*    
     auto hollowS = new G4Box("Hollow",(calorSizeXY-calorThickness)/2., (calorSizeXY-calorThickness)/2., calorSizeZ/2.);
     auto hollowLV = new G4LogicalVolume(hollowS,defaultMaterial,"HollowLV");
 
@@ -189,32 +267,46 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps 
+                 */
                  
  //-----------Build Carbon Target--------------------------------------------------
-   G4double carbon_radius = 100.0*cm; 
+ /*  G4double carbon_radius = targetRadius; 
    G4double carbon_len = 0.01*cm; 
    G4double carbon_angle = 360. * deg; 
    
    auto carbonS = new G4Tubs("CarbonS",0.,carbon_radius,carbon_len,0,carbon_angle);
    auto carbonLV = new G4LogicalVolume(carbonS,carbonMaterial,"CarbonLV");
-   new G4PVPlacement(0,G4ThreeVector(0., 0., 0.),carbonLV,"CarbonPV",hollowLV,false,0,fCheckOverlaps);
+   new G4PVPlacement(0,G4ThreeVector(0., 0., 0.),carbonLV,"CarbonPV",worldLV,false,0,fCheckOverlaps);
+*///Ate25
+//ATE--------------Build TPC
+
+   auto tpcS = new G4Tubs("TPCS", tpcInnerRadius,tpcOuterRadius, calorSizeZ/2., startAngle,spanningAngle);
+   auto tpcLV = new G4LogicalVolume(tpcS,TPC_mat,"TPCLV" );
+   new G4PVPlacement(0, G4ThreeVector(0.,0.,0.), tpcLV,"TPCPV", worldLV, false,0,fCheckOverlaps);
+
 
 
  //-----------Visualization for hollowLV (make it same color as background)----------
-//  auto black_color = new G4VisAttributes(G4Colour::Black()); 
-//  black_color->SetVisibility(true);
-//  carbonLV->SetVisAttributes(black_color);
+  //auto black_color = new G4VisAttributes(G4Colour::Black()); 
+  //black_color->SetVisibility(true);
+ //carbonLV->SetVisAttributes(black_color);
 
 //-------Makes absorber and scintilator volumes becoming a G4Region---------------------
 
    G4Region* caloRegion = new G4Region("EM_calo_region");
-   caloRegion->AddRootLogicalVolume(absorberLV);
+   caloRegion->AddRootLogicalVolume(leadLV);
 //   caloRegion->SetProductionCuts(new G4ProductionCuts());
 //   caloRegion->GetProductionCuts()->SetProductionCut( 0.1*m, idxG4GammaCut );
 //   caloRegion->GetProductionCuts()->SetProductionCut( 1.0*cm, idxG4GammaCut );
    
    G4Region* hadRegion = new G4Region("HAD_calo_region");   
-   hadRegion->AddRootLogicalVolume(scintLV);
+   hadRegion->AddRootLogicalVolume(scintS1LV);
+   hadRegion->AddRootLogicalVolume(scintS2LV); 
+
+   G4Region* tpcRegion = new G4Region("EM_tpc_region");
+   tpcRegion->AddRootLogicalVolume(tpcLV);
+      
+
 
     return worldPV;
 }
@@ -223,11 +315,13 @@ G4VPhysicalVolume* NNBARDetectorConstruction::Construct() {
 
 void NNBARDetectorConstruction::ConstructSDandField() {
 	
+   
   
    G4RegionStore* regionStore = G4RegionStore::GetInstance();
    G4Region* caloRegion = regionStore->GetRegion("EM_calo_region");
-   G4Region* hadRegion  = regionStore->GetRegion("HAD_calo_region"); 
-  
+   G4Region* hadRegion = regionStore->GetRegion("HAD_calo_region"); 
+   G4Region* tpcRegion = regionStore->GetRegion("EM_tpc_region");
+
   NNBARFastSimModelEMCal* fastSimModelEMCal
       = new NNBARFastSimModelEMCal( "fastSimModelEMCal", caloRegion,
                                     NNBARDetectorParametrisation::eNNBAR );
@@ -237,9 +331,15 @@ void NNBARDetectorConstruction::ConstructSDandField() {
   NNBARFastSimModelHCal* fastSimModelHCal
       = new NNBARFastSimModelHCal( "fastSimModelHCal", hadRegion,
                                    NNBARDetectorParametrisation::eNNBAR );
+
     // Register the HAD fast simulation model for deleting
     G4AutoDelete::Register( fastSimModelHCal );
 
+   NNBARFastSimModelTracker* fastSimModelTracker 
+      = new NNBARFastSimModelTracker("fastSimModelTracker",tpcRegion,
+                                    NNBARDetectorParametrisation::eNNBAR);
+
+   G4AutoDelete::Register( fastSimModelTracker);
  // Add global magnetic field
   G4ThreeVector fieldValue = G4ThreeVector(0.,0.,0.);
   fMagFieldMessenger = new G4GlobalMagFieldMessenger( fieldValue );

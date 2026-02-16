@@ -58,7 +58,7 @@ class NNBAREventAction : public G4UserEventAction {
     /// Defines the actions at the beginning of the event. 
     /// It sets the NNBAREventInformation with fSmear flag. 
     /// It creates all the ntuples defined in NNBAROutput singleton class.
-    virtual void BeginOfEventAction( const G4Event* );
+    virtual void BeginOfEventAction(  G4Event* ); //ate jan25
     
     /// Defines the actions at the end of the event.
     virtual void EndOfEventAction( const G4Event* );

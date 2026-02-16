@@ -74,6 +74,15 @@ class NNBARSmearer {
     /// @param aStandardDeviation The standard deviation of a Gaussian distribution.
     G4double Gauss( G4double aMean, G4double aStandardDeviation );
 
+     //Returns a pure gaussian value for smearing - WVS - 2025-06-22
+    /// @param aResolution A resolution taken as a standard deviation of a
+    ///                    Gaussian distribution.
+    G4double SmearValue( G4double aResolution );
+
+
+    G4double BetheBloch( G4ParticleDefinition* aParticle, G4double aKinectE);
+
+
   protected:
     
     /// A default constructor.

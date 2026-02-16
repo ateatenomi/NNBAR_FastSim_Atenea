@@ -54,6 +54,7 @@ NNBARRunAction::~NNBARRunAction() {
 
 void NNBARRunAction::BeginOfRunAction( const G4Run* aRun ) {
   NNBAROutput::Instance()->StartAnalysis( aRun->GetRunID() );
+  NNBAROutput::Instance()->CreateNtuples(); //Ate 28.1.26
   NNBAROutput::Instance()->CreateHistograms();
 }
 

@@ -53,10 +53,14 @@ NNBAREventAction::~NNBAREventAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void NNBAREventAction::BeginOfEventAction( const G4Event* /*aEvent*/ ) {
-  G4EventManager::GetEventManager()->SetUserInformation( 
-                                              new NNBAREventInformation( fSmear ) );
-  NNBAROutput::Instance()->CreateNtuples();
+void NNBAREventAction::BeginOfEventAction(  G4Event* aEvent ) {
+  //G4EventManager::GetEventManager()->SetUserInformation(new NNBAREventInformation( fSmear ) ); //ate jan 25
+  //if (!aEvent->GetUserInformation()) {
+  auto info = new NNBAREventInformation(fSmear);
+    info->Reset();  // clears acceptance flag
+    aEvent->SetUserInformation(info);
+  //}
+//NNBAROutput::Instance()->CreateNtuples();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

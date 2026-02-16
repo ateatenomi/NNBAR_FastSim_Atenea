@@ -150,6 +150,14 @@ void NNBARPhysicsList::ConstructGeneral() {
   while ( (*particleIterator)() ) {
     G4ParticleDefinition* particle = particleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
+
+       //  DEBUG: disable decay for pions ate jan 25
+    //if ( particle->GetParticleName() == "pi+" ||
+    //     particle->GetParticleName() == "pi-" ) {
+    //  continue;
+    //}
+
+
     if ( theDecayProcess->IsApplicable( *particle ) ) {
       pmanager->AddProcess( theDecayProcess );
       // set ordering for PostStepDoIt and AtRestDoIt

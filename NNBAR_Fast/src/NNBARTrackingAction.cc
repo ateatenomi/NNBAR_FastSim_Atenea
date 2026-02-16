@@ -61,7 +61,7 @@ void NNBARTrackingAction::PreUserTrackingAction( const G4Track* aTrack ) {
 //  }
   if ( aTrack->GetMomentum().perp() < 1.0*MeV )
  {
-     ( (G4Track*) aTrack )->SetTrackStatus( fStopAndKill );
+     //( (G4Track*) aTrack )->SetTrackStatus( fStopAndKill ); Ate 27.1.25
   }
 
 }

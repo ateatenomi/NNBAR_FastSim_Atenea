@@ -80,6 +80,38 @@ G4String NNBAROutput::GetFileName() {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void NNBAROutput::SetParticleTrace( G4double fTrace ) {
+  fParticleTrace = fTrace;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4double NNBAROutput::GetParticleTrace() {
+  return fParticleTrace;
+}
+
+G4bool NNBAROutput::IsSmearingSelect() {
+  return fIsSmearingSelect;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+/// Set and Get smearing value - WVS - 24/06/2025
+void NNBAROutput::SetSmearingValueSelect( G4double pSmearingValueSelect ) {
+  fSmearingValueSelect = pSmearingValueSelect;
+  fIsSmearingSelect = true;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4double NNBAROutput::GetSmearingValueSelect() {
+  return fSmearingValueSelect;
+}
+
+
+
+
 
 void NNBAROutput::StartAnalysis( G4int aRunID ) {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
@@ -117,13 +149,18 @@ void NNBAROutput::CreateNtuples() {
   analysisManager->FinishNtuple(0);
 
   //Uncomment for tracker. Be careful with the ntuple number in FinishNtuple()
-  //analysisManager->CreateNtuple("Tracker","Tracker");
-  //analysisManager->CreateNtupleDColumn("tracker_res", fTrackerResVec);
-  //analysisManager->CreateNtupleDColumn("tracker_eff", fTrackerEffVec);
-  //analysisManager->CreateNtupleDColumn("tracker_pX", fTracker_pXVec);
-  //analysisManager->CreateNtupleDColumn("tracker_pY", fTracker_pYVec);
-  //analysisManager->CreateNtupleDColumn("tracker_pZ", fTracker_pZVec);
-  //analysisManager->FinishNtuple(1);
+  analysisManager->CreateNtuple("Tracker","Tracker");
+  analysisManager->CreateNtupleIColumn("tracker_PDG" ,fTrackerPDGVec);       //WVS - 03/06/2025
+  analysisManager->CreateNtupleDColumn("tracker_ETruth",fTrackerETruthVec);   //WVS - 03/06/2025
+  analysisManager->CreateNtupleDColumn("tracker_res", fTrackerResVec);
+  analysisManager->CreateNtupleDColumn("tracker_eff", fTrackerEffVec);
+  analysisManager->CreateNtupleDColumn("tracker_pX", fTracker_pXVec);
+  analysisManager->CreateNtupleDColumn("tracker_pY", fTracker_pYVec);
+  analysisManager->CreateNtupleDColumn("tracker_pZ", fTracker_pZVec);
+  analysisManager->CreateNtupleDColumn("tracker_E", fTrackerEVec );        //WVS - 03/06/2025
+  analysisManager->CreateNtupleDColumn("tracker_Time" ,fTrackerTimeVec);   //WVS - 03/06/2025
+  analysisManager->CreateNtupleDColumn("tracker_pathLength",fTrackerPathLength); //Ate 2.2.26
+  analysisManager->FinishNtuple(1);
   
   analysisManager->CreateNtuple("EMCAL","EMCAL");
   analysisManager->CreateNtupleIColumn( "emcal_PDG" ,fEmcalPDGVec); 
@@ -135,10 +172,10 @@ void NNBAROutput::CreateNtuples() {
   analysisManager->CreateNtupleDColumn( "emcal_Z",fEmcalZVec ); 
   analysisManager->CreateNtupleDColumn( "emcal_E", fEmcalEVec ); 
   analysisManager->CreateNtupleDColumn( "emcal_Time" ,fEmcalTimeVec); 
-  analysisManager->FinishNtuple(1);
+  analysisManager->FinishNtuple(2);
   
   //Uncomment for HCAL. Be careful with the ntuple number in FinishNtuple()
-  /*analysisManager->CreateNtuple("HCAL","HCAL");
+  analysisManager->CreateNtuple("HCAL","HCAL");
   analysisManager->CreateNtupleIColumn( "hcal_PDG",fHcalPDGVec);  
   analysisManager->CreateNtupleDColumn( "hcal_ETruth",fHcalETruthVec);
   analysisManager->CreateNtupleDColumn( "hcal_res",fHcalResVec); 
@@ -148,7 +185,7 @@ void NNBAROutput::CreateNtuples() {
   analysisManager->CreateNtupleDColumn( "hcal_Z",fHcalZVec); 
   analysisManager->CreateNtupleDColumn( "hcal_E",fHcalEVec); 
   analysisManager->CreateNtupleDColumn( "hcal_Time",fHcalTimeVec);
-  analysisManager->FinishNtuple(3);*/
+  analysisManager->FinishNtuple(3);
 
  }
 
@@ -166,13 +203,31 @@ void NNBAROutput::CreateHistograms()
   analysisManager->CreateH1( "HCalEdiff", "energy smeared in HCal", 100, 0.0, 2.0 );
   analysisManager->SetH1XAxisTitle( 2, "E_{smeared}/E_{true}" );
   analysisManager->SetH1YAxisTitle( 2, "Entries" );
+
+
+  // --- Acceptance vs momentum ---AteDec25
+fH_p_gen = analysisManager->CreateH1("p_gen",  "Generated momentum", 100, 0., 5.*GeV);
+fH_p_acc = analysisManager->CreateH1("p_acc",  "Accepted momentum",  100, 0., 5.*GeV);
+
+// --- Acceptance vs angle ---
+fH_th_gen = analysisManager->CreateH1("th_gen", "Generated theta", 100, 0., CLHEP::pi);
+fH_th_acc = analysisManager->CreateH1("th_acc", "Accepted theta",  100, 0., CLHEP::pi);
+
+//---Acceptance vs energy. 22.01.2026
+fH_KE_gen = analysisManager->CreateH1("KE_gen","Generated KE",100,0,2000*MeV);
+fH_KE_acc = analysisManager->CreateH1("KE_acc","Accepted KE",100,0,2000*MeV);
+
+//---Acceptance vs x initial pos. 30.01.2026
+fH_x_gen = analysisManager->CreateH1("X_gen","Generated X",100,-60*cm,60*cm);
+fH_x_acc = analysisManager->CreateH1("X_acc","Accepted X",100,-60*cm,60*cm);
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void NNBAROutput::SaveTrack( SaveType aWhatToSave, G4int aPartID,  G4int aPDG, G4double aETruth,
                              G4ThreeVector aVector, G4double aResolution, 
-                             G4double aEfficiency, G4double aEnergy,  G4double aTime ) {
+                             G4double aEfficiency, G4double aEnergy,  G4double aTime) {
  
    switch (aWhatToSave) {
    case NNBAROutput::eNoSave:
@@ -188,15 +243,20 @@ void NNBAROutput::SaveTrack( SaveType aWhatToSave, G4int aPartID,  G4int aPDG, G
       break;
     }
 
-    //case NNBAROutput::eSaveTracker: {
-    //  std::cout <<"here 2" << std::endl;
-    //  fTrackerResVec.push_back(aResolution);
-    //  fTrackerEffVec.push_back(aEfficiency);
-     // fTracker_pXVec.push_back(aVector.x());
-     // fTracker_pYVec.push_back(aVector.y());
-     // fTracker_pZVec.push_back(aVector.z());
-     // break;
-  //  }
+    case NNBAROutput::eSaveTracker: {
+     //std::cout <<"here 2" << std::endl;
+      fTrackerPDGVec.push_back(aPDG);        //WVS - 03/06/2025
+      fTrackerETruthVec.push_back(aETruth);  //WVS - 03/06/2025
+      fTrackerResVec.push_back(aResolution);
+      fTrackerEffVec.push_back(aEfficiency);
+      fTracker_pXVec.push_back(aVector.x());
+      fTracker_pYVec.push_back(aVector.y());
+      fTracker_pZVec.push_back(aVector.z());
+      fTrackerEVec.push_back(aEnergy);       //WVS - 03/06/2025
+      fTrackerTimeVec.push_back(aTime);
+      fTrackerPathLength.push_back(GetParticleTrace()); //ate 2.2.26
+      break;
+    }
     
     case NNBAROutput::eSaveEMCal : {
      fEmcalPDGVec.push_back(aPDG);
@@ -208,9 +268,10 @@ void NNBAROutput::SaveTrack( SaveType aWhatToSave, G4int aPartID,  G4int aPDG, G
      fEmcalZVec.push_back( aVector.z() );
      fEmcalEVec.push_back(aEnergy);
      fEmcalTimeVec.push_back(aTime);
+     break;
    }    
     
-/*   case NNBAROutput::eSaveHCal : {
+    case NNBAROutput::eSaveHCal : {
     fHcalPDGVec.push_back(aPDG);
     fHcalETruthVec.push_back(aETruth);
     fHcalResVec.push_back(aResolution);
@@ -220,7 +281,8 @@ void NNBAROutput::SaveTrack( SaveType aWhatToSave, G4int aPartID,  G4int aPDG, G
     fHcalZVec.push_back( aVector.z() );
     fHcalEVec.push_back(aEnergy);
     fHcalTimeVec.push_back(aTime);
-   }*/
+    break;
+   }
  }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -228,10 +290,37 @@ void NNBAROutput::SaveTrack( SaveType aWhatToSave, G4int aPartID,  G4int aPDG, G
 void NNBAROutput::SaveEvent() {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
+auto event =
+    G4RunManager::GetRunManager()->GetCurrentEvent();
+
+  auto info = static_cast<NNBAREventInformation*>(
+      event->GetUserInformation());
+
+  G4double p  = info->GetGenMomentum();
+  G4double th = info->GetGenTheta();
+  G4double KE = info->GetGenKE();
+  G4double posX = info->GetGenPrimaryInitialX();
+
+  // Denominator
+  analysisManager->FillH1(fH_p_gen,  p);
+  analysisManager->FillH1(fH_th_gen, th);
+  analysisManager->FillH1(fH_KE_gen, KE);
+  analysisManager->FillH1(fH_x_gen, posX);
+
+  // Numerator
+  if (info->GetPrimaryHitTracker()) {
+      analysisManager->FillH1(fH_p_acc,  p);
+      analysisManager->FillH1(fH_th_acc, th);
+      analysisManager->FillH1(fH_KE_acc, KE);
+      analysisManager->FillH1(fH_x_acc, posX);
+  }
+
+
+
   analysisManager->AddNtupleRow(0);
   analysisManager->AddNtupleRow(1);
-  //analysisManager->AddNtupleRow(2);
-  //analysisManager->AddNtupleRow(3);
+  analysisManager->AddNtupleRow(2);
+  analysisManager->AddNtupleRow(3);
 
   //Clear vectors for next event
  
@@ -241,11 +330,19 @@ void NNBAROutput::SaveEvent() {
   fMC_XVec.clear();
   fMC_YVec.clear();
   fMC_ZVec.clear();
- // fTrackerResVec.clear();
- // fTrackerEffVec.clear();
- // fTracker_pXVec.clear();
- // fTracker_pYVec.clear();
- // fTracker_pZVec.clear();
+
+  fTrackerPDGVec.clear();
+  fTrackerETruthVec.clear();
+  fTrackerResVec.clear();
+  fTrackerEffVec.clear();
+  fTracker_pXVec.clear();
+  fTracker_pYVec.clear();
+  fTracker_pZVec.clear();
+  fTrackerEVec.clear();
+  fTrackerTimeVec.clear();
+  fTrackerPathLength.clear();
+
+
   fEmcalPDGVec.clear();
   fEmcalETruthVec.clear();
   fEmcalResVec.clear();
@@ -255,7 +352,7 @@ void NNBAROutput::SaveEvent() {
   fEmcalZVec.clear();
   fEmcalEVec.clear();
   fEmcalTimeVec.clear();
-/*  fHcalPDGVec.clear();
+  fHcalPDGVec.clear();
   fHcalETruthVec.clear();
   fHcalResVec.clear();
   fHcalEffVec.clear();
@@ -263,7 +360,7 @@ void NNBAROutput::SaveEvent() {
   fHcalYVec.clear();
   fHcalZVec.clear();
   fHcalEVec.clear();
-  fHcalTimeVec.clear();  */
+  fHcalTimeVec.clear();  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -273,4 +370,3 @@ void NNBAROutput::FillHistogram( G4int aHistNo, G4double aValue ) const {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

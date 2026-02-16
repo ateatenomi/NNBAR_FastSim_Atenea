@@ -60,8 +60,11 @@ int main( int argc, char** argv ) {
   //-------------------------------
   // Initialization of Run manager
   //-------------------------------
-  auto* runManager = G4RunManagerFactory::CreateRunManager();
-  runManager->SetNumberOfThreads(1);
+  //Had problems with multi threading (Ate)
+  //auto* runManager = G4RunManagerFactory::CreateRunManager(); Ate 2.2.26
+  //runManager->SetNumberOfThreads(1);
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
+  
 
   // Detector/mass geometry:
   G4VUserDetectorConstruction* detector = new NNBARDetectorConstruction();

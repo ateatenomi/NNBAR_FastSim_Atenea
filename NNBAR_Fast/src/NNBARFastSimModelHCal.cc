@@ -1,4 +1,4 @@
-//
+
 // ********************************************************************
 // * License and Disclaimer                                           *
 // *                                                                  *
@@ -25,7 +25,7 @@
 //
 //
 /// \file NNBARFastSimModelHCal.cc
-// Based on Geant4 NNBAR parametrization example
+// Based on Geant4 Par02 parametrization example
 // Andre Nepomuceno - Winter 2023
 
 
@@ -39,6 +39,8 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4AnalysisManager.hh"
+#include "G4PionMinus.hh"
+#include "G4PionPlus.hh"
 
 #include "Randomize.hh"
 #include "G4SystemOfUnits.hh"
@@ -70,17 +72,9 @@ NNBARFastSimModelHCal::~NNBARFastSimModelHCal() {}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4bool NNBARFastSimModelHCal::IsApplicable( const G4ParticleDefinition& aParticleType ) {
-  G4bool isOk = false;
-  // Applicable to all hadrons, i.e. any particle made of quarks
-  if ( aParticleType.GetQuarkContent(1) +
-       aParticleType.GetQuarkContent(2) +
-       aParticleType.GetQuarkContent(3) +
-       aParticleType.GetQuarkContent(4) +
-       aParticleType.GetQuarkContent(5) +
-       aParticleType.GetQuarkContent(6) != 0 ) {
-    isOk = true;
-  }
-   return isOk;
+
+    return &aParticleType == G4PionMinus::Definition()  ||
+ 	   &aParticleType == G4PionPlus::Definition();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -96,13 +90,16 @@ void NNBARFastSimModelHCal::DoIt( const G4FastTrack& aFastTrack,
   //G4cout << " ________HCal model triggered _________" << G4endl;
 
   G4int pdgID = 0;
-  G4double p = 1.0;
+  pdgID = aFastTrack.GetPrimaryTrack()-> GetDefinition()->GetPDGEncoding();
+
+
   // Kill the parameterised particle at the entrance of the hadronic calorimeter
   aFastStep.KillPrimaryTrack();
   aFastStep.ProposePrimaryTrackPathLength( 0.0 );
-  G4double Edep = aFastTrack.GetPrimaryTrack()->GetKineticEnergy();
+  G4double KE = aFastTrack.GetPrimaryTrack()->GetKineticEnergy();
   G4ThreeVector Pos = aFastTrack.GetPrimaryTrack()->GetPosition();
   G4double time = aFastTrack.GetPrimaryTrack()->GetGlobalTime();
+   
 
    NNBAREventInformation* info = (NNBAREventInformation*) G4EventManager::GetEventManager()->GetUserInformation();
 
@@ -110,28 +107,27 @@ void NNBARFastSimModelHCal::DoIt( const G4FastTrack& aFastTrack,
       // Smearing according to the hadronic calorimeter resolution
       G4ThreeVector Porg = aFastTrack.GetPrimaryTrack()->GetMomentum();
       G4double res = fCalculateParametrisation->GetResolution( NNBARDetectorParametrisation::eHCAL, 
-                     fParametrisation, Porg.mag() ,p );
-//                       fParametrisation, Porg.mag() ,p );
-
+                     fParametrisation, KE, pdgID );
 
       G4double med = fCalculateParametrisation->GetMedian( 
-                     NNBARDetectorParametrisation::eHCAL, fParametrisation, Edep, p );
+                     NNBARDetectorParametrisation::eHCAL, fParametrisation, KE , pdgID );
       
       G4double eff = fCalculateParametrisation->GetEfficiency( NNBARDetectorParametrisation::eHCAL, 
-                     fParametrisation, Edep );
+                     fParametrisation, KE );
                      
       G4double Esm;
       Esm = std::abs( NNBARSmearer::Instance()->
-                      SmearEnergy( aFastTrack.GetPrimaryTrack(), res , med) );
+                      SmearEnergy( aFastTrack.GetPrimaryTrack(), res , med, KE) );
+      //std::cout << "Reco E:" << Esm << std::endl;
 
 //Save histogram and trees
-      NNBAROutput::Instance()->FillHistogram( 2, (Esm/MeV) / (Edep/MeV) );
+      NNBAROutput::Instance()->FillHistogram( 2, (Esm/MeV) / (KE/MeV) );
       
       pdgID = aFastTrack.GetPrimaryTrack()-> GetDefinition()->GetPDGEncoding();
       NNBAROutput::Instance()->SaveTrack( NNBAROutput::eSaveHCal,
                                         0,
                                         pdgID,
-                                        Edep/MeV,
+                                        KE/MeV,
                                         Pos/mm,
                                         res,
                                         eff,
@@ -145,7 +141,7 @@ void NNBARFastSimModelHCal::DoIt( const G4FastTrack& aFastTrack,
       // No smearing: simply setting the value of Edep
       // The (initial) energy of the particle is deposited in the step
       // (which corresponds to the entrance of the hadronic calorimeter)
-      aFastStep.ProposeTotalEnergyDeposited( Edep );
+      aFastStep.ProposeTotalEnergyDeposited( KE );
     }
 }
 

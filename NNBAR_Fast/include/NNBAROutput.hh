@@ -57,6 +57,20 @@ class NNBAROutput {
     /// Gets the file name of the output root file.
     /// @return The name of the file.
     G4String GetFileName();
+
+        /// Sets the last particle trace - WVS - 11/06/2025
+    void SetParticleTrace( G4double fTrace );
+    
+    /// Gets the last particle trace pushed - WVS - 11/06/2025
+    G4double GetParticleTrace();
+
+    /// Set and Get if smearing value was select - WVS - 24/06/2025
+    //void SetIsSmearingSelect( G4bool pIsSmearingSelect ); //is changed by SetSmearingValueSelect
+    G4bool IsSmearingSelect();
+
+    /// Set and Get smearing value - WVS - 24/06/2025
+    void SetSmearingValueSelect( G4double pSmearingValueSelect );
+    G4double GetSmearingValueSelect();
     
     /// Sets fFileNameWithRunNo that indicates whether to add the run number
     /// to the file name.
@@ -120,11 +134,16 @@ class NNBAROutput {
   std::vector<G4double> fMC_YVec;
   std::vector<G4double> fMC_ZVec;
 
+  std::vector<G4int>    fTrackerPDGVec;    //WVS - 03/06/2025
+  std::vector<G4double> fTrackerETruthVec; //WVS - 03/06/2025
   std::vector<G4double> fTrackerResVec;
   std::vector<G4double> fTrackerEffVec;
   std::vector<G4double> fTracker_pXVec;
   std::vector<G4double> fTracker_pYVec;
   std::vector<G4double> fTracker_pZVec;
+  std::vector<G4double> fTrackerEVec;    //WVS - 03/06/2025
+  std::vector<G4double> fTrackerTimeVec; //WVS - 03/06/2025
+  std::vector<G4double> fTrackerPathLength; //ate 2.2.26
   
   std::vector<G4int>    fEmcalPDGVec;
   std::vector<G4double> fEmcalETruthVec;
@@ -157,6 +176,22 @@ class NNBAROutput {
     
     /// If true, a run number should be added to the file. Default: false.
     G4bool fFileNameWithRunNo;
+
+    G4double fParticleTrace;
+    G4bool fIsSmearingSelect; 
+    G4double fSmearingValueSelect; 
+
+    //ate dec25
+    G4int fH_p_gen;
+    G4int fH_p_acc;
+    G4int fH_th_gen;
+    G4int fH_th_acc;
+    //22.01.2026
+    G4int fH_KE_gen;
+    G4int fH_KE_acc;
+    //30.01.2026
+    G4int fH_x_gen;
+    G4int fH_x_acc;
     
     /// A control value of particle ID to ensure that data saved to various ntuples
     /// match the same particle. It is set when Monte Carlo information is saved

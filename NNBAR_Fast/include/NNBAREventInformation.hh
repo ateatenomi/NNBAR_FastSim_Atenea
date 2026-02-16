@@ -32,6 +32,7 @@
 
 #include "G4VUserEventInformation.hh"
 #include "globals.hh"
+#include "G4ThreeVector.hh" 
 
 /// Event information.
 ///
@@ -60,11 +61,47 @@ class NNBAREventInformation : public G4VUserEventInformation {
     /// Gets the flag indicating if smearing should be done.
     G4bool GetDoSmearing();
 
+    //ate dec25: Add an acceptance flag
+    void Reset() {
+        fPrimaryHitTracker = false;
+    }
+    void SetPrimaryHitTracker() { fPrimaryHitTracker = true; }
+    G4bool GetPrimaryHitTracker() const { return fPrimaryHitTracker; }
+
+    void SetEntryPos(G4ThreeVector pos) {fEntryPos = pos;}
+    G4ThreeVector GetEntryPos() const {return fEntryPos;}
+
+    void SetExitPos(G4ThreeVector pos2) {fExitPos = pos2;}
+    G4ThreeVector GetExitPos() const {return fExitPos;}
+
+    // Generated kinematics
+    void SetGenMomentum(G4double p) { fGenMomentum = p; }
+    void SetGenTheta(G4double t) { fGenTheta = t; }
+    void SetGenKE(G4double KE) {fGenKE = KE;}
+    void SetGenPrimaryInitialX(G4double posx) {fPrimaryInitialX =posx;}
+    void SetTotPathLength(G4double path) {fTotPathLength=path;}
+
+    G4double GetGenMomentum() const { return fGenMomentum; }
+    G4double GetGenTheta() const { return fGenTheta; }
+    G4double GetGenKE() const {return fGenKE;}
+    G4double GetGenPrimaryInitialX() const { return fPrimaryInitialX; }
+    G4double GetTotPathLength() const { return fTotPathLength;}
+
   private:
     
     /// A flag indicating if smearing should be performed. 
     /// It is read by implementations of G4VFastSimulationModel.
     G4bool fDoSmearing;
+
+    //ate dec25:
+    G4bool fPrimaryHitTracker = false;
+    G4double fGenMomentum = 0.;
+    G4double fGenTheta    = 0.;
+    G4double fGenKE = 0.;
+    G4double fPrimaryInitialX=0.;
+    G4ThreeVector fEntryPos;
+    G4ThreeVector fExitPos;
+    G4double fTotPathLength = 0.; 
 };
 
 #endif

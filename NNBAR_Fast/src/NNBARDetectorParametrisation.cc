@@ -73,15 +73,17 @@ G4double res = 1.0;
     aKenergy /= GeV;  //aMomentum must be in GeV
          if (aDetector == NNBARDetectorParametrisation::eEMCAL ) {
              if (abs(pdg) == 11 || pdg == 22 || abs(pdg) == 13 )  res = 0.056/std::sqrt(aKenergy) + 0.011;
+            // if (abs(pdg) == 11 || pdg == 22 || abs(pdg) == 13 )  res = 0.056/std::sqrt(aKenergy) + 0.011;
+
          }
          
         if (aDetector == NNBARDetectorParametrisation::eHCAL ) {
-           res = 2.3*0.008;  //using FWHM
+           if ( abs(pdg) == 211) res = 0.11;  //using FWHM
         }
        
-         //if (aDetector == NNBARDetectorParametrisation::eTRACKER ) {
-           // res = 1.0;
-         //}
+         if (aDetector == NNBARDetectorParametrisation::eTRACKER ) {
+            res = 0.17;
+         }
    }  
   
   return res;

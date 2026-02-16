@@ -37,6 +37,8 @@
 #include "globals.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include "NNBAREventInformation.hh"
+
 
 #define pi 3.14159265
 
@@ -69,8 +71,32 @@ void NNBARPrimaryGeneratorAction::GeneratePrimaries( G4Event* anEvent ) {
   for ( G4int ivtx = 0; ivtx < anEvent->GetNumberOfPrimaryVertex(); ivtx++ ) {
     for ( G4int ipp = 0; ipp < anEvent->GetPrimaryVertex( ivtx )->GetNumberOfParticle();
           ipp++ ) {
+      G4PrimaryVertex* forDirection = anEvent->GetPrimaryVertex(ivtx);
+      G4ThreeVector initialPos = forDirection->GetPosition();
+
       G4PrimaryParticle* primary_particle = 
         anEvent->GetPrimaryVertex( ivtx )->GetPrimary( ipp );
+
+
+      
+        //ate acceptance graph
+        auto info = static_cast<NNBAREventInformation*>(
+        anEvent->GetUserInformation());
+
+
+        if (!info) {
+            info = new NNBAREventInformation();
+            anEvent->SetUserInformation(info);    
+        }
+        
+        auto p = primary_particle->GetMomentum();
+        G4double KE = primary_particle->GetKineticEnergy();
+        info->SetGenMomentum(p.mag());
+        info->SetGenTheta(p.theta());
+        info->SetGenKE(KE);
+        info->SetGenPrimaryInitialX(initialPos.x());
+        
+
       if ( primary_particle ) {
         primary_particle->SetUserInformation( new NNBARPrimaryParticleInformation( 
           count_particles, primary_particle->GetPDGcode(), primary_particle->GetKineticEnergy(),
