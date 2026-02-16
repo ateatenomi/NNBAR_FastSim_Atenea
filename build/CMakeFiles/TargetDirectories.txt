@@ -1,8 +1,0 @@
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/nnbar_main.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/NNBAR.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/edit_cache.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/rebuild_cache.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/list_install_components.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/install.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/install/local.dir
-/home/ateneaua/NNBAR_FastSim-/build/CMakeFiles/install/strip.dir
